@@ -1,1 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit&display=swap');
 @import "tailwindcss";
+
+
+*{
+   font-family: Outfit;
+}
+.slider{
+   -webkit-appearance: none;
+   background: transparent;
+   height: 100%;
+}
+
+.slider::-webkit-slider-thumb{
+   appearance: none;
+   min-height:30px;
+   width:30px;
+   background-image: url('/slide_icon.svg');
+   background-position: center;
+   background-repeat: no-repeat;
+   background-size: cover;
+}
