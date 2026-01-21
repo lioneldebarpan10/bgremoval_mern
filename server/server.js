@@ -1,24 +1,24 @@
 import 'dotenv/config'
-
 import express from 'express'
 import cors from 'cors'
 import connectDB from './configs/mongodb.js'
 
-// App Config
-const PORT = process.env.PORT || 4000
+// App Config 
 const app = express()
+const PORT = process.env.PORT || 4000
 
+// Connect DB
 await connectDB()
 
-//Initialize Middlewares
+// initialize Middlewares
 app.use(express.json())
 app.use(cors())
 
-// API routes 
-app.get('/', (req , res)=>{
-   res.send("API is Working")
+// API Routes
+app.get('/', (req, res) => {
+  res.send("API is Working")
 })
 
-app.listen(PORT , () =>{
-   console.log("Server is running on "+PORT)
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
 })

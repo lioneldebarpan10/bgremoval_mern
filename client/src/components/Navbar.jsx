@@ -15,7 +15,6 @@ const Navbar = () => {
             isSignedIn ?
                <div>
                   <UserButton />
-
                </div>
                :
                <button onClick={() => openSignIn({})} className='bg-zinc-800 text-white flex items-center gap-4 px-4 py-2 sm:px-8 sm:py-3 text-sm rounded-full cursor-pointer'>
