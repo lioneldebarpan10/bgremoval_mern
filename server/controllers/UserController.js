@@ -21,13 +21,14 @@ const clerkWebhooks = async (req, res) => {
         const { data, type } = req.body;
 
         switch (type) {
+
             case "user.created": {
 
                 const userData = {
-                    clerkID: data.id,
-                    email: data.email_addresses[0].email_addresses,
-                    firstName: data.first_Name,
-                    lastName: data.last_Name,
+                    clerkId: data.id,
+                    email: data.email_addresses[0].email_address,
+                    firstName: data.first_name,
+                    lastName: data.last_name,
                     photo: data.image_url
                 }
                 await userModel.create(userData)
@@ -37,25 +38,26 @@ const clerkWebhooks = async (req, res) => {
 
             case "user.updated": {
                 const userData = {
-                    clerkID: data.id,
-                    email: data.email_addresses[0].email_addresses,
-                    firstName: data.first_Name,
-                    lastName: data.last_Name,
+                    email: data.email_addresses[0].email_address,
+                    firstName: data.first_name,
+                    lastName: data.last_name,
                     photo: data.image_url
                 }
 
-                await userModel.findOneAndUpdate({clerkID:data.id} , userData)
+                await userModel.findOneAndUpdate({clerkId:data.id} , userData)
                 res.json({})
                 break;
             }
 
-
             case "user.deleted": {
 
-                await userModel.findOneAndDelete({clerkID:data.id})
+                await userModel.findOneAndDelete({clerkId:data.id})
                 res.json({})
                 break;
+            }
 
+            default: {
+                break;
             }
         }
     }
