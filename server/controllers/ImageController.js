@@ -50,10 +50,10 @@ const removeBgImage = async (req, res) => {
       // constructing result image
       const resultImage = `data:${req.file.mimetype};base64,${base64Image}`
 
-      // deducting one credit from user account
+      // deducting one credit from user account after getting result image
       await userModel.findByIdAndUpdate(user._id, { creditBalance: user.creditBalance - 1 })
 
-      res.json({ success: true, resultImage, creditBalance: user.creditBalance - 1 })
+      res.json({ success: true, resultImage: resultImage, creditBalance: user.creditBalance - 1 , message: 'Background removed successfully' })
 
    }
    catch (error) {
