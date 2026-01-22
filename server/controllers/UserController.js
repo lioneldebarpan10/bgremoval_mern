@@ -1,5 +1,8 @@
 import { Webhook } from 'svix';
 import userModel from '../models/userModel.js';
+
+import razorpay from 'razorpay';
+import transactionModel from '../models/transactionModel.js';
 // API Controller function to manage clerk user with database
 
 // https://localhost:4000/api/user/webhooks
@@ -84,4 +87,78 @@ const userCredits = async (req, res) => {
 }
 
 
-export { clerkWebhooks, userCredits }
+// Gateway initialize
+
+const razorpayInstance = new razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+})
+
+// API to make payment for credits
+
+const paymentRazoypay = async (req, res) => {
+
+    try {
+
+        const { clerkId, planId } = req.body;
+
+        const userData = await userModel.findOne({ clerkId })
+
+        if (!userData || !planId) {
+            return res.json({ success: false, message: 'Inavlid Credentials' })
+        }
+
+        let credits, plan, amount, date
+
+        switch (planId) {
+            case 'Basic':
+                credits = 50
+                amount = 100
+                plan = 'Basic Plan - 100 Credits'
+                break;
+            case 'Advanced':
+                credits = 500
+                amount = 250
+                plan = 'Advanced Plan - 500 Credits'
+                break;
+            case 'Business':
+                credits = 5000
+                amount = 2500
+                plan = 'Business Plan - 5000 Credits'
+                break;
+
+            default:
+                break;
+        }
+
+        date = Date.now()
+
+        // Creating transaction 
+        const transactionData = {
+            clerkId,
+            plan, amount,
+            credits,
+            date,
+        }
+        const newTransaction = await new transactionModel.create(transactionData)
+
+        const options = {
+            amount : amount * 100,
+            currency: process.env.CURRENCY,
+            receipt: newTransaction._id
+        }
+
+        await razorpayInstance.orders.create(options , (error , order) => {
+            if(error){
+                return res.json({success: false , message: error})
+            }
+            res.json({success: true , order})
+        })
+    }
+    catch (error) {
+        console.log(error.message);
+        return res.json({ success: false, message: error.message });
+    }
+}
+
+export { clerkWebhooks, userCredits , paymentRazoypay }
