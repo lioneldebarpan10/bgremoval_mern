@@ -9,13 +9,15 @@ import axios from 'axios'
 const BuyCredit = () => {
 
 
-   const { backendUrl , loadCreditsData} = useContext(AppContext)
+   const { backendUrl, loadCreditsData } = useContext(AppContext)
 
    const navigate = useNavigate()
 
    const { getToken } = useAuth()
 
    const initPay = async (order) => {
+
+      console.log("Razorpay SDK:", window.Razorpay)
 
       const options = {
 
@@ -28,7 +30,24 @@ const BuyCredit = () => {
          receipt: order.receipt,
          handler: async (response) => {
             console.log(response)
-            
+
+            const token = await getToken()
+
+            try {
+               const { data } = await axios.post(backendUrl + 'api/user/verify-razor', response, { headers: { token } })
+
+               if(data.success){
+                  loadCreditsData()
+                  navigate('/')
+                  toast.success('Credits added')
+               }
+            }
+
+            catch (error) {
+               console.log(error)
+               toast.error(error.message)
+            }
+
          }
       }
 
@@ -36,18 +55,18 @@ const BuyCredit = () => {
       rzp.open()
    }
 
-   const paymentRazorpay = async(planId) => {
-      try{
+   const paymentRazorpay = async (planId) => {
+      try {
          const token = await getToken()
 
-         const {data} = await axios.post(backendUrl + 'api/user/pay-razor' , {planId} , {headers: {token}})
+         const { data } = await axios.post(backendUrl + 'api/user/pay-razor', { planId }, { headers: { token } })
 
-         if(data.success){
+         if (data.success) {
             initPay(data.order)
          }
       }
-      catch(error){
-         comsole.log(error)
+      catch (error) {
+         console.log(error)
          toast.error(error.message)
       }
    }
@@ -59,14 +78,14 @@ const BuyCredit = () => {
          <div className='flex flex-wrap justify-center gap-6  text-left'>
 
             {plans.map((item, index) => (
-               <div key = {index} className='bg-white drop-shadow-sm rounded-lg py-12 px-8 tet-gray-700 hover:scale-105 transition-all duration-500'>
+               <div key={index} className='bg-white drop-shadow-sm rounded-lg py-12 px-8 tet-gray-700 hover:scale-105 transition-all duration-500'>
                   <img width={40} src={assets.logo_icon} alt="logo-icon" />
                   <p className='mt-3 font-semibold'>{item.id}</p>
                   <p className='text-sm'>{item.desc}</p>
-                  <p className='mt-6'> 
+                  <p className='mt-6'>
                      <span className='text-3xl font-medium'>₹{item.price}</span> /{item.credits}
                   </p>
-                  <button onClick = {() => paymentRazorpay(item.id)} className='w-full bg-gray-800 text-white mt-8 text-sm py-2.5 rounded-md min-w-52 cursor-pointer'>Purchase</button>
+                  <button onClick={() => paymentRazorpay(item.id)} className='w-full bg-gray-800 text-white mt-8 text-sm py-2.5 rounded-md min-w-52 cursor-pointer'>Purchase</button>
                </div>
 
 

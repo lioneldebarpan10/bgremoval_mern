@@ -140,19 +140,19 @@ const paymentRazoypay = async (req, res) => {
             credits,
             date,
         }
-        const newTransaction = await new transactionModel.create(transactionData)
+        const newTransaction = await transactionModel.create(transactionData)
 
         const options = {
-            amount : amount * 100,
+            amount: amount * 100,
             currency: process.env.CURRENCY,
             receipt: newTransaction._id
         }
 
-        await razorpayInstance.orders.create(options , (error , order) => {
-            if(error){
-                return res.json({success: false , message: error})
+        await razorpayInstance.orders.create(options, (error, order) => {
+            if (error) {
+                return res.json({ success: false, message: error })
             }
-            res.json({success: true , order})
+            res.json({ success: true, order })
         })
     }
     catch (error) {
@@ -161,4 +161,45 @@ const paymentRazoypay = async (req, res) => {
     }
 }
 
-export { clerkWebhooks, userCredits , paymentRazoypay }
+
+// API Controller function to verify Razorpay Payment
+
+const verifyRazorpay = async (req, res) => {
+
+    try {
+
+        const { razorpay_order_id } = req.body
+        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
+
+        if (orderInfo.status === 'paid') {
+
+            const transactionData = await transactionModel.findById(orderInfo.receipt)
+
+            if (transactionData.payment) {
+                res.json({ succes: false, message: 'Payment failed' })
+            }
+
+            // Adding credits in user data
+
+            const userData = await userModel.findOne({ clerkId: transactionData.clerkId })
+            const creditBalance = userData.creditBalance + transactionData.credits
+            await userModel.findByIdAndUpdate(userData._id, {creditBalance})
+
+            // making the payment true
+
+            await transactionModel.findByIdAndUpdate(transactionData._id, {payment: true})
+
+            res.json({success: true, message: 'Credits Added'});
+
+        }
+
+    }
+
+    catch {
+        console.log(error.message)
+        res.json({ success: false, message: error.message })
+    }
+
+}
+
+export { clerkWebhooks, userCredits, paymentRazoypay , verifyRazorpay }
