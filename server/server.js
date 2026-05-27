@@ -9,12 +9,16 @@ import imageRouter from './routes/imageRoutes.js'
 const app = express()
 const PORT = process.env.PORT || 4000
 
-// Connect DB
-await connectDB()
+// Connect DB (start but don't let a failed connection crash the process)
+connectDB().catch(err => {
+  console.error('Failed to connect to database on startup:', err.message || err)
+})
 
 // initialize Middlewares
 app.use(express.json())
-app.use(cors())
+// Allow CORS for all origins by default and enable preflight responses
+app.use(cors({ origin: true }))
+app.options('*', cors())
 
 // API Routes
 app.get('/', (req, res) => {
