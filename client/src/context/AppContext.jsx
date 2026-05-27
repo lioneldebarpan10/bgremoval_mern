@@ -19,6 +19,13 @@ const AppContextProvider = (props) => {
    const [resultImage, setresultImage] = useState(false)
 
    const backendUrl = import.meta.env.VITE_BACKEND_URL
+   // build API urls safely: trim quotes/spaces and ensure single slash joining
+   const getApiUrl = (path) => {
+      const raw = String(backendUrl || '').trim().replace(/^['"]|['"]$/g, '')
+      const base = raw.replace(/\/+$/g, '')
+      const p = String(path).replace(/^\/+/, '')
+      return base ? `${base}/${p}` : `/${p}`
+   }
    const navigate = useNavigate()
 
    const { getToken } = useAuth()
@@ -31,7 +38,7 @@ const AppContextProvider = (props) => {
 
       try {
          const token = await getToken()
-         const { data } = await axios.get(backendUrl + 'api/user/credits', { headers: { token } })
+         const { data } = await axios.get(getApiUrl('api/user/credits'), { headers: { token } })
          if (data.success) {
             setCredit(data.credits)
             console.log(data.credits)
@@ -59,7 +66,7 @@ const AppContextProvider = (props) => {
          const formData = new FormData()
          image && formData.append('image', image)
 
-         const { data } = await axios.post(backendUrl + 'api/image/remove-bg', formData, { headers: { token } })
+         const { data } = await axios.post(getApiUrl('api/image/remove-bg'), formData, { headers: { token } })
 
          if(data.success) {
             setresultImage(data.resultImage)
